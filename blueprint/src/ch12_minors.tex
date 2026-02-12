@@ -3,12 +3,12 @@
 \section{Well-quasi-ordering}
 
 \begin{lemma}
-  \label{QO_tricolor} \lean{QO_tricolor} \uses{theo:ramsey_infgraph}
+  \label{QO_tricolor} \lean{QO_tricolor} \uses{theo:ramsey_infgraph} \leanok
   If \(X\) is a quasi-ordered set, in any infinite sequence, there exists either an infinite increasing subsequence, an infinite strictly decreasing subsequence or an infinite antichain
 \end{lemma}
 
 \begin{proof}
-  Let \(\leq\) be a quasi-order on \(X\)
+  Let \(\leq\) be a quasi-ordering on \(X\)
 
   Let \((x_i)_{i\in\mathbb{N}}\) be an infinite sequence in \(X\)
 
@@ -80,6 +80,30 @@
   \label{theo:Higman} \lean{Higman} \leanok
   If $X$ is well-quasi-ordered by , then so is $[X]^{<ω}$.
 \end{theorem}
+
+\begin{proof}
+  Let \(\leq\) be a well-quasi-ordering on \(X\),
+
+  Suppose that \(\leq\) is not a well-quasi-ordering on \([X]^{<\omega}\)
+
+  For all \(A,B\in[X]^{<\omega}\), we write \(A\leq B\) if there exists \(f:A\to B\) injective such that for all \(a\in A\), \(a\leq f(a)\)
+
+  A sequence \(\left(B_i\right)_{i\in\N}\in([X]^{<\omega})^\N\) is bad if for all \(i,j\in\N\) with \(i<j\), \(B_i\not\leq B_j\)
+
+  We proceed by induction with the following hypothesis. For any given \(n\in\N\), there exists \(A_0,...,A_{n-1}\in[X]^{<\omega}\) and a bad sequence \(\left(B_i\right)_{i\in\N}\in([X]^{<\omega})^\N\) such that for all \(i<n\), \(A_i=B_i\)
+
+  As \(\leq\) is not a well-quasi-ordering on \([X]^{<\omega}\), there exists \(\left(B_i\right)_{i\in\N}\in([X]^{<\omega})^\N\) a bad sequence.
+
+  Moreover, the condition \(\forall,i<0,A_i=B_i\) is always true which proves the base case
+
+  Let \(n\in\N\), 
+
+  Assume that there exists \(A_0,...,A_{n-1}\in[X]^{<\omega}\) and a bad sequence \(\left(B_i\right)_{i\in\N}\in([X]^{<\omega})^\N\) such that for all \(i<n\), \(A_i=B_i\)
+
+  Let \(\mathcal{B}=\{B\in([X]^{<\omega})^\N/\forall i<n,A_i=B_i\text{ and B is bad}\}\)
+
+  \(\mathcal{B}\) is non empty so we can choose \(B\in\mathcal{B}\) such that for all \(B'\in\mathcal{B}\), \(|B_n|\leq|B'_n|\)
+\end{proof}
 
 \section{The graph minor theorem for trees}
 
