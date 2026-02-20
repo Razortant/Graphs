@@ -77,7 +77,7 @@
 % \end{proof}
 
 \begin{theorem}[Higman's Lemma, Diestel 12.1.3]
-  \label{theo:Higman} \lean{Higman} \leanok
+  \label{theo:Higman} \lean{Higman} \leanok \uses{WQO_incsubseq}
   If $X$ is well-quasi-ordered by , then so is $[X]^{<ω}$.
 \end{theorem}
 
@@ -100,9 +100,41 @@
 
   Assume that there exists \(A_0,...,A_{n-1}\in[X]^{<\omega}\) and a bad sequence \(\left(B_i\right)_{i\in\N}\in([X]^{<\omega})^\N\) such that for all \(i<n\), \(A_i=B_i\)
 
-  Let \(\mathcal{B}=\{B\in([X]^{<\omega})^\N/\forall i<n,A_i=B_i\text{ and B is bad}\}\)
+  Let \(\mathcal{B}=\{B\in([X]^{<\omega})^\mathbb{N}/\forall i<n,A_i=B_i\text{ and B is bad}\}\)
 
   \(\mathcal{B}\) is non empty so we can choose \(B\in\mathcal{B}\) such that for all \(B'\in\mathcal{B}\), \(|B_n|\leq|B'_n|\)
+
+  Let \(A_n=B_n\)
+
+  The sequence \(\left(A_n\right)_{n\in\mathbb{N}}\) is bad in \([X]^{<\omega}\) by construction
+
+  In particular, \(A_n\neq\emptyset\) as for all \(A\in[X]^{<\omega}, \emptyset\leq A\)
+
+  For all \(n\in\mathbb{N}\), we choose \(a_n\in A_n\)
+
+  Let \(C_n:=A_n\backslash\{a_n\}\)
+
+  \(X\) is well-quasi-ordered, therefore, according to the corollary 12.1.2, the sequence has an infinite increasing subsequence \(\left(A_{n_i}\right)_{i\in\mathbb{N}}\)
+
+  The sequence \(A_0,A_1,...,A_{n_0-1},C_{n_0},C_{n_1},C_{n_2},...\) is good
+
+  That fact is true because \(|C_{n_0}|<|A_{n_0}|\) and \(|A_{n_0}|\) is minimal
+
+  There exists a good pair in the sequence. It can have the form \((A_i,A_j)\), \((A_i,B_j)\) or \((B_i,B_j)\) with \(i<j\)
+
+  The first case is impossible as \(\left(A_n\right)_{n\in\mathbb{N}}\) is bad
+
+  The second case is also impossible as \(B_j\leq A_j\)
+
+  Thus, it has the form \((B_i,B_j)\)
+
+  There exists \(f:B_i\to B_j\) injective such that for all \(a\in B_i\), \(a\leq f(a)\)
+
+  \(a_i\leq a_j\) as \(\left(A_{n_i}\right)_{i\in\mathbb{N}}\) is an infinite increasing sequence
+
+  Therefore, we can extend the injection \(f\) by setting \(f(a_i)=a_j\)
+
+  We obtain that \((A_i,A_j)\) is good which contradicts the hypothesis
 \end{proof}
 
 \section{The graph minor theorem for trees}
