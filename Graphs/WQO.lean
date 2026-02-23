@@ -194,16 +194,20 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
         unfold WellQuasiOrdered at h
         have hBB := isEmpty_or_nonempty (BB A 0)
         cases' hBB with Mty noMty
-        · simp at Mty
-          unfold BB at Mty
-          simp at Mty
-          have hMty : ∀ B : ℕ → Finset α, ¬ (∀ i j : ℕ, i < j → ¬ B i ⊆ B j) := by
-            simpa [Set.ext_iff] using Mty
-          simp at hMty
-
-          intro B2 hB2
-          rw [Set.mem_empty_iff_false] at hB2
-          contradiction
+        · suffices: A ∈ BB A 0
+          · simp at Mty
+            rw [Mty] at this
+            contradiction
+          simp [BB]
+          intro i j hij hh
+          specialize hA i j hij
+          let f : (A i) ↪ (A j) := by
+            refine ⟨fun x => ⟨x, hh x.prop⟩, ?_⟩
+            intro a b
+            simp
+          specialize hA f
+          obtain ⟨x0, hx0, hx0'⟩ := hA
+          simp [f] at hx0'
         · specialize hBBmin A 0 noMty
           rw [Set.nonempty_coe_sort,Set.nonempty_def] at hBBmin
           obtain ⟨B,hB⟩ := hBBmin
@@ -212,8 +216,41 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
           grind
           intro B1 hB1
           grind
-      |succ n Hn=>
-        obtain ⟨A,⟨B,hAB⟩⟩ := Hn
-
-        sorry
+      |succ n Hn =>
+        obtain ⟨An,⟨Bn,⟨hn1,hn2⟩⟩⟩ := Hn
+        have noMty : Nonempty (BB An n) := by
+          rw [Set.nonempty_coe_sort,Set.nonempty_def]
+          use Bn
+        apply hBBmin An at noMty
+        obtain ⟨An',hAn'⟩ := noMty
+        have : Nonempty (BBmin An' (n + 1)) := by sorry
+        obtain ⟨B',hB'⟩ := this
+        let A2 (i : ℕ) : Finset α := if i = n + 1 then B' i else An' i
+        use A2
+        use B'
+        constructor
+        rw [Set.mem_setOf]
+        constructor
+        rw [Set.mem_setOf] at hB'
+        have hB' := hB'.left
+        rw [Set.mem_setOf] at hB'
+        have hB' := hB'.left
+        exact hB'
+        intro i hi
+        by_cases hi2 : i = n + 1
+        grind
+        grind
+        rw [Set.mem_setOf] at hB'
+        have hB' := hB'.right
+        intro B2 hB2
+        specialize hB' B2
+        rw [Set.mem_setOf] at hB2
+        have: B2 ∈ BB An' (n + 1) := by
+          rw [Set.mem_setOf]
+          constructor
+          grind
+          grind
+        specialize hB' this
+        assumption
+  -- Need P = ∃ A, ∀ (n : ℕ), ∃ B ∈ BB A n, ∀ B2 ∈ BB A n, (B n).card ≤ (B2 n).card
   sorry
