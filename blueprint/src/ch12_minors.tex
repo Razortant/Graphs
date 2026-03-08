@@ -170,6 +170,26 @@
   \(T_0,...,T_n\) is a prefix of \(\left(A_i\right)_{i\in\mathbb{N}}\) if \(\forall i\leq n, A_i=T_i\)
 
   \(T_0,...,T_n\) is a bad prefix if it is a prefix of some bad sequence
+
+  \(T\) is minimal in \(\mathcal{T}\) if \(\forall T'\in\mathcal{T}, T'\preceq T\Rightarrow T\preceq T'\)
+
+  For any tree \(T\) with root \(r\), for all \(u,v\in T\), we write \(u<_Tv\) if the unique path from \(r\) to \(v\) passes through \(u\)
+
+  By contradiction, suppose that finite trees are not well-quasi-ordered by \(\preceq\)
+
+  There exists \(\left(A_i\right)_{i\in\mathbb{N}}\) a bad sequence
+
+  By induction, we show that for any given \(n\in\mathbb{N}\), for all bad prefix \(T_0,...,T_{n-1}\) the set \(\mathcal{T}=\{T/T_0,...,T_{n-1},T\text{ is a bad prefix}\}\) is non-empty and there exists \(T_n\) minimal in \(\mathcal{T}\)
+
+  Let \(T_0,...,T_{n-1}\) be a bad prefix, and \(\mathcal{T}=\{T/T_0,...,T_{n-1},T\text{ is a bad prefix}\}\)
+
+  \(T_0,...,T_{n-1}\) is a bad prefix so there exists \(\left(A_i\right)_{i\in\mathbb{N}}\) a bad sequence with \(T_0,...,T_{n-1}\) as a prefix
+
+  \(A_n\in\mathcal{T}\) so \(\mathcal{T}\) is non-empty
+
+  For all \(T\in\mathcal{T}\), \(\empty\preceq T\) and \(\preceq\) is a preorder
+
+  Therefore, by Zorn's lemma for preorders, there exists \(T_n\) minimal in \(\mathcal{T}\)
 \end{proof}
 
 \setcounter{section}{6}
