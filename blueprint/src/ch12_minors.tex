@@ -175,21 +175,33 @@
 
   For any tree \(T\) with root \(r\), for all \(u,v\in T\), we write \(u<_Tv\) if the unique path from \(r\) to \(v\) passes through \(u\)
 
+  If \(T=(V,E,r)\) is a rooted tree, we define the forest \(T-r=(V\backslash\{r\},E',R)\) with \(E'=\{(v,v')\in E/v,v'\neq r\}\) and \(R\) the set of all children of \(r\) in \(T\)
+  
   By contradiction, suppose that finite trees are not well-quasi-ordered by \(\preceq\)
 
   There exists \(\left(A_i\right)_{i\in\mathbb{N}}\) a bad sequence
 
   By induction, we show that for any given \(n\in\mathbb{N}\), for all bad prefix \(T_0,...,T_{n-1}\) the set \(\mathcal{T}=\{T/T_0,...,T_{n-1},T\text{ is a bad prefix}\}\) is non-empty and there exists \(T_n\) minimal in \(\mathcal{T}\)
-
+  
   Let \(T_0,...,T_{n-1}\) be a bad prefix, and \(\mathcal{T}=\{T/T_0,...,T_{n-1},T\text{ is a bad prefix}\}\)
 
-  \(T_0,...,T_{n-1}\) is a bad prefix so there exists \(\left(A_i\right)_{i\in\mathbb{N}}\) a bad sequence with \(T_0,...,T_{n-1}\) as a prefix
+  \(T_0,...,T_{n-1}\) is a bad prefix so there exists \(\left(A'_i\right)_{i\in\mathbb{N}}\) a bad sequence with \(T_0,...,T_{n-1}\) as a prefix
 
-  \(A_n\in\mathcal{T}\) so \(\mathcal{T}\) is non-empty
+  \(A'_n\in\mathcal{T}\) so \(\mathcal{T}\) is non-empty
 
   For all \(T\in\mathcal{T}\), \(\empty\preceq T\) and \(\preceq\) is a preorder
 
   Therefore, by Zorn's lemma for preorders, there exists \(T_n\) minimal in \(\mathcal{T}\)
+
+  The base case is shown the same way with an empty bad prefix and with \(A_0\in\mathcal{T}\)
+
+  The sequence \(\left(T_i\right)_{i\in\mathbb{N}}\) is bad by construction
+
+  For each \(n\in\mathbb{N}\), we denote the root of \(T_n\) by \(r_n\)
+
+  For each \(n\in\mathbb{N}\), let \(B_n\) be the forest \(T_n-r_n\)
+
+  Let \(B=\displaystyle\bigcup_{n\in\mathbb{N}}B_n\),
 \end{proof}
 
 \setcounter{section}{6}
