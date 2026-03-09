@@ -160,12 +160,12 @@
 \section{The graph minor theorem for trees}
 
 \begin{theorem}[Kruskal 1960]
-  \label{theo:Kruskal} \lean{Kruskal} 
+  \label{theo:Kruskal} \lean{Kruskal} \uses{Highman}
   The finite trees are well-quasi-ordered by the topological minor relation \(\preceq\)
 \end{theorem}
 
 \begin{proof}
-  \(\left(A_i\right)_{i\in\mathbb{N}}\) is bad if \(\forall i,j\in\mathbb{N}, i<j\Rightarrow A_i\npreceq A_j\)
+  \(\left(A_i\right)_{i\in\mathbb{N}}\) is bad if \(\forall i,j\in\mathbb{N}, i<j\Rightarrow A_i\npreceq A_j\) and is good if it is not bad
 
   \(T_0,...,T_n\) is a prefix of \(\left(A_i\right)_{i\in\mathbb{N}}\) if \(\forall i\leq n, A_i=T_i\)
 
@@ -173,9 +173,11 @@
 
   \(T\) is minimal in \(\mathcal{T}\) if \(\forall T'\in\mathcal{T}, T'\preceq T\Rightarrow T\preceq T'\)
 
-  For any tree \(T\) with root \(r\), for all \(u,v\in T\), we write \(u<_Tv\) if the unique path from \(r\) to \(v\) passes through \(u\)
+  For any tree \(T\) with root \(r\), for all \(u,v\in T\), we write \(u<_Tv\) if the unique path from \(r\) to \(v\) passes through \(u\). \(<_T\) is the tree-order of \(T\)
 
   If \(T=(V,E,r)\) is a rooted tree, we define the forest \(T-r=(V\backslash\{r\},E',R)\) with \(E'=\{(v,v')\in E/v,v'\neq r\}\) and \(R\) the set of all children of \(r\) in \(T\)
+
+  Let \(T\) be a tree and \(x,y\in T\), if \(x\) is an ascendant of \(y\), we denote the unique path from \(x\) to \(y\) by \(x[\to]y\)
   
   By contradiction, suppose that finite trees are not well-quasi-ordered by \(\preceq\)
 
@@ -201,7 +203,45 @@
 
   For each \(n\in\mathbb{N}\), let \(B_n\) be the forest \(T_n-r_n\)
 
-  Let \(B=\displaystyle\bigcup_{n\in\mathbb{N}}B_n\),
+  Let \(B=\displaystyle\bigcup_{n\in\mathbb{N}}B_n\)
+
+  Let \(\left(T^{(k)}\right)_{k\in\mathbb{N}}\)
+
+  For all \(k\in\mathbb{N}\), there exists \(n_k\in\mathbb{N}\) such that \(T^{(k)}\in\B_{n_k}\)
+
+  Let \(N=\min\{n_k\in\mathbb{N}/k\in\mathbb{N}\}\) and \(m=\min\{k\in\mathbb{N}/N=n_k\}\)
+
+  Let \(C=\left(C_i\right)_{i\in\mathbb{N}}\) with \(C_i=T_i\) if \(i<N\) and \(C_i=T^{(i-N+m)}\) if \(i\geq N\)
+
+  \(T^{(m)}\subsetneq T_N\) and \(T_N\) is minimal in \(\mathcal{T}=\{T/T_0,...,T_{N-1},T\text{ is a bad prefix}\}\)
+
+  Therefore \(T_0,...,T_{N-1}\) is not a bad prefix and \(C\) is good
+
+  There exists \(i,j\in\mathbb{N}\) such that \(i<j\) and \(C_i\preceq C_j\)
+
+  If \(i<N\) and \(j<N\), we get \(T_i\preceq T_j\) which contradicts the fact that \(\left(T_i\right)_{i\in\mathbb{N}}\) is bad
+
+  If \(i<N\) and \(j\geq N\), we get \(T_i\preceq T^{(j-N+m)}\) but \(T^{(j-N+m)}\preceq T_{n_{j-N+m}}\) so, by transitivity, \(T_i\preceq T_{n_{j-N+m}}\)
+
+  As \(i<N\leq j-N+m\) by minimality of \(N\) it is impossible
+
+  If \(i\geq N\) and \(j<N\), we get \(j<i\) which is impossible as \(i<j\)
+
+  So the good pair is in \(\left(T^{(k)}\right)_{k\in\mathbb{N}}\)
+
+  \(B\) is well-quasi-ordered
+
+  According to Higman's Lemma, \([B]^{<\omega}\) is also well-quasi-ordered
+
+  Therefore, \(\left(B_n\right)_{n\in\mathbb{N}}\) has a good pair
+
+  There exists \(i,j\in\mathbb{N}\) and \(f:B_i\to B_j\) such that \(i<j\), \(f\) injective and for all \(T\in\B_i, T\preceq f(T)\)
+
+  For all \(T\in B_i\) there exists an embedding \(\varphi_T:T\to f(T)\) that preserves the tree-order of \(T\)
+
+  Let \(\varphi:T_i\to T_j\) be a function such that \(\forall T\in B_i, \varphi_{|T}=\varphi_T\) and \(\varphi(r_i)=r_j\) for every \(v\in T_i\) child of \(r_i\), \(\varphi(r_iv)=r_j[\to]\varphi(v)\)
+
+  \(\varphi\) preserves the tree-order of \(T_i\), therefore \(T_i\preceq T_j\) which contradicts the fact that \(\left(T_i\right)_{i\in\mathbb{N}}\) is bad
 \end{proof}
 
 \setcounter{section}{6}
