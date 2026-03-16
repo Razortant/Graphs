@@ -3,7 +3,7 @@ import Graphs.Ramsey
 
 open Classical
 
-variable {α : Type*} [PartialOrder α]
+variable {α : Type*} [Preorder α]
 
 theorem QO_tricolor {X : Type*} [Preorder X] {f : ℕ → X} : ∃ g : ℕ ↪o ℕ, (Monotone (f ∘ g) ∨ StrictAnti (f ∘ g) ∨ (∀ i : ℕ, ∀ j : ℕ, i < j → ¬ ((f (g i) ≤ f (g j)) ∨ (f (g i) > f (g j))))) := by
   let K := SimpleGraph.completeGraph ℕ
@@ -150,107 +150,168 @@ theorem WQO_iff : WellQuasiOrderedLE α ↔
 
 def FinsetLE (s t : Finset α) : Prop := ∃ f : s ↪ t, ∀ x, x.val ≤ f x
 
+infix:50 " ≼ " => FinsetLE
+
+def Bad (B : ℕ → Finset α) : Prop := ∀ i j, i < j → ¬ ((B i) ≼ (B j))
+
+def Prefix {n : ℕ} (A : Fin n → Finset α) (B : ℕ → Finset α) : Prop := ∀ i, A i = B i
+
+def BadPrefix {n : ℕ} (A : Fin n → Finset α) : Prop := ∃ B : ℕ → Finset α, (Bad B) ∧ (Prefix A B)
+
+def Minima (A : Finset α) (AA : Set (Finset α)) : Prop := A ∈ AA ∧ ∀ A2 ∈ AA, A2 ≼ A → A ≼ A2
+
+def Concat {n : ℕ} (A : Fin n → Finset α) (M : Finset α) : Fin (n + 1) → Finset α := by
+  intro i
+  by_cases h : i < n
+  · exact A ⟨i, h⟩
+  · exact M
+
 -- Lemma 12.1.3
 theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := α)) := by
   by_contra h1
   unfold WellQuasiOrdered at h1
   simp at h1
   obtain ⟨A,hA⟩ := h1
-  unfold FinsetLE at hA
-  simp at hA
-  let BB (A : ℕ → Finset α) (n : ℕ) := {B : ℕ → Finset α | (∀ i j : ℕ, i<j → ¬ B i ≤ B j) ∧ (∀ i < n, A i = B i)}
-  let BBcard (A : ℕ → Finset α) (n : ℕ) := {i : ℕ | ∃ B : ℕ → Finset α, B ∈ BB A n ∧ (B n).card = i}
-  let BBmin (A : ℕ → Finset α) (n : ℕ) := {B ∈ BB A n | ∀ B1 ∈ BB A n, (B n).card ≤ (B1 n).card}
-  have hBBmin (A : ℕ → Finset α) (n : ℕ) : Nonempty (BB A n) → Nonempty (BBmin A n) := by
-    intro hBB
-    obtain ⟨B, hB⟩ := hBB
-    have hcard : (B n).card ∈ BBcard A n := by
+  have P (n : ℕ) : ∀ A : Fin n → Finset α, BadPrefix A → ∃ M : Finset α, Minima M {M' : Finset α|BadPrefix (Concat A M')} := by
+    intro A' hBPA'
+    unfold BadPrefix at hBPA'
+    obtain ⟨B,⟨hBBad,hA'PrefB⟩⟩ := hBPA'
+    let BB := {M' | BadPrefix (Concat A' M')}
+    have NptyBB : Nonempty BB := by
+      rw [Set.nonempty_coe_sort,Set.nonempty_def]
+      use B n
+      unfold BB
       rw [Set.mem_setOf]
+      unfold BadPrefix
       use B
-    let Bcard := (B n).card
-    rw [Set.nonempty_coe_sort,Set.nonempty_def]
-    have hBBcard : ∃ i, i ∈ BBcard A n := by use (B n).card
-    let m := Nat.find hBBcard
-    have hm1 : m ∈ BBcard A n := Nat.find_spec hBBcard
-    have hm2 : ∀ k, k ∈ BBcard A n → m ≤ k := by
-      intro k hk
-      exact Nat.find_min' hBBcard hk
-    rw [Set.mem_setOf] at hm1
-    obtain ⟨Bm, ⟨hBm1,hBm2⟩⟩ := hm1
-    use Bm
-    rw [Set.mem_setOf]
-    constructor
-    exact hBm1
-    intro B1 hB1
-    rw [hBm2]
-    apply hm2
-    rw [Set.mem_setOf]
-    use B1
-  have P (n : ℕ) : ∃ A B : ℕ → Finset α, B ∈ BB A n ∧ ∀ B2 ∈ BB A n, (B n).card ≤ (B2 n).card := by
-    induction n with
-      |zero =>
-        use A
-        rw [wellQuasiOrderedLE_def] at h
-        unfold WellQuasiOrdered at h
-        have hBB := isEmpty_or_nonempty (BB A 0)
-        cases' hBB with Mty noMty
-        · suffices: A ∈ BB A 0
-          · simp at Mty
-            rw [Mty] at this
-            contradiction
-          simp [BB]
-          intro i j hij hh
-          specialize hA i j hij
-          let f : (A i) ↪ (A j) := by
-            refine ⟨fun x => ⟨x, hh x.prop⟩, ?_⟩
-            intro a b
-            simp
-          specialize hA f
-          obtain ⟨x0, hx0, hx0'⟩ := hA
-          simp [f] at hx0'
-        · specialize hBBmin A 0 noMty
-          rw [Set.nonempty_coe_sort,Set.nonempty_def] at hBBmin
-          obtain ⟨B,hB⟩ := hBBmin
-          use B
-          constructor
-          grind
-          intro B1 hB1
-          grind
-      |succ n Hn =>
-        obtain ⟨An,⟨Bn,⟨hn1,hn2⟩⟩⟩ := Hn
-        have noMty : Nonempty (BB An n) := by
-          rw [Set.nonempty_coe_sort,Set.nonempty_def]
-          use Bn
-        apply hBBmin An at noMty
-        obtain ⟨An',hAn'⟩ := noMty
-        have : Nonempty (BBmin An' (n + 1)) := by sorry
-        obtain ⟨B',hB'⟩ := this
-        let A2 (i : ℕ) : Finset α := if i = n + 1 then B' i else An' i
-        use A2
-        use B'
-        constructor
-        rw [Set.mem_setOf]
-        constructor
-        rw [Set.mem_setOf] at hB'
-        have hB' := hB'.left
-        rw [Set.mem_setOf] at hB'
-        have hB' := hB'.left
-        exact hB'
-        intro i hi
-        by_cases hi2 : i = n + 1
-        grind
-        grind
-        rw [Set.mem_setOf] at hB'
-        have hB' := hB'.right
-        intro B2 hB2
-        specialize hB' B2
-        rw [Set.mem_setOf] at hB2
-        have: B2 ∈ BB An' (n + 1) := by
-          rw [Set.mem_setOf]
-          constructor
-          grind
-          grind
-        specialize hB' this
-        assumption
-  -- Need P = ∃ A, ∀ (n : ℕ), ∃ B ∈ BB A n, ∀ B2 ∈ BB A n, (B n).card ≤ (B2 n).card
+      constructor
+      assumption
+      unfold Prefix
+      intro i
+      unfold Concat
+      by_cases h : i < n
+      · simp [h]
+        unfold Prefix at hA'PrefB
+        exact hA'PrefB ⟨i,h⟩
+      · simp [h]
+        simp at h
+        have h2 : i = n := by grind
+        simp [h2]
+    sorry --Find a way to integrate Zorn's Lemma to obtain the M
+  have P0 := P 0
+  simp [BadPrefix,Prefix,Concat] at P0
+  specialize P0 A
+  have h3 : Bad A := by
+    unfold Bad
+    assumption
+  specialize P0 h3
+  obtain ⟨A0,hA0⟩ := P0
+  unfold Minima at hA0
+  have ⟨hA0a,hA0b⟩ := hA0
+  rw [Set.mem_setOf] at hA0a
+  obtain ⟨B,⟨hBa,hBb⟩⟩ := hA0a
   sorry
+
+-- theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := α)) := by
+--   by_contra h1
+--   unfold WellQuasiOrdered at h1
+--   simp at h1
+--   obtain ⟨A,hA⟩ := h1
+--   unfold FinsetLE at hA
+--   simp at hA
+--   let BB (A : ℕ → Finset α) (n : ℕ) := {B : ℕ → Finset α | (∀ i j : ℕ, i<j → ¬ B i ≤ B j) ∧ (∀ i < n, A i = B i)}
+--   let BBcard (A : ℕ → Finset α) (n : ℕ) := {i : ℕ | ∃ B : ℕ → Finset α, B ∈ BB A n ∧ (B n).card = i}
+--   let BBmin (A : ℕ → Finset α) (n : ℕ) := {B ∈ BB A n | ∀ B1 ∈ BB A n, (B n).card ≤ (B1 n).card}
+--   have hBBmin (A : ℕ → Finset α) (n : ℕ) : Nonempty (BB A n) → Nonempty (BBmin A n) := by
+--     intro hBB
+--     obtain ⟨B, hB⟩ := hBB
+--     have hcard : (B n).card ∈ BBcard A n := by
+--       rw [Set.mem_setOf]
+--       use B
+--     let Bcard := (B n).card
+--     rw [Set.nonempty_coe_sort,Set.nonempty_def]
+--     have hBBcard : ∃ i, i ∈ BBcard A n := by use (B n).card
+--     let m := Nat.find hBBcard
+--     have hm1 : m ∈ BBcard A n := Nat.find_spec hBBcard
+--     have hm2 : ∀ k, k ∈ BBcard A n → m ≤ k := by
+--       intro k hk
+--       exact Nat.find_min' hBBcard hk
+--     rw [Set.mem_setOf] at hm1
+--     obtain ⟨Bm, ⟨hBm1,hBm2⟩⟩ := hm1
+--     use Bm
+--     rw [Set.mem_setOf]
+--     constructor
+--     exact hBm1
+--     intro B1 hB1
+--     rw [hBm2]
+--     apply hm2
+--     rw [Set.mem_setOf]
+--     use B1
+--   have P (n : ℕ) : ∃ A B : ℕ → Finset α, B ∈ BB A n ∧ ∀ B2 ∈ BB A n, (B n).card ≤ (B2 n).card := by
+--     induction n with
+--       |zero =>
+--         use A
+--         rw [wellQuasiOrderedLE_def] at h
+--         unfold WellQuasiOrdered at h
+--         have hBB := isEmpty_or_nonempty (BB A 0)
+--         cases' hBB with Mty noMty
+--         · suffices: A ∈ BB A 0
+--           · simp at Mty
+--             rw [Mty] at this
+--             contradiction
+--           simp [BB]
+--           intro i j hij hh
+--           specialize hA i j hij
+--           let f : (A i) ↪ (A j) := by
+--             refine ⟨fun x => ⟨x, hh x.prop⟩, ?_⟩
+--             intro a b
+--             simp
+--           specialize hA f
+--           obtain ⟨x0, hx0, hx0'⟩ := hA
+--           simp [f] at hx0'
+--         · specialize hBBmin A 0 noMty
+--           rw [Set.nonempty_coe_sort,Set.nonempty_def] at hBBmin
+--           obtain ⟨B,hB⟩ := hBBmin
+--           use B
+--           constructor
+--           grind
+--           intro B1 hB1
+--           grind
+--       |succ n Hn =>
+--         obtain ⟨An,⟨Bn,⟨hn1,hn2⟩⟩⟩ := Hn
+--         have noMty : Nonempty (BB An n) := by
+--           rw [Set.nonempty_coe_sort,Set.nonempty_def]
+--           use Bn
+--         apply hBBmin An at noMty
+--         obtain ⟨An',hAn'⟩ := noMty
+--         have : Nonempty (BBmin An' (n + 1)) := by sorry
+--         obtain ⟨B',hB'⟩ := this
+--         let A2 (i : ℕ) : Finset α := if i = n + 1 then B' i else An' i
+--         use A2
+--         use B'
+--         constructor
+--         rw [Set.mem_setOf]
+--         constructor
+--         rw [Set.mem_setOf] at hB'
+--         have hB' := hB'.left
+--         rw [Set.mem_setOf] at hB'
+--         have hB' := hB'.left
+--         exact hB'
+--         intro i hi
+--         by_cases hi2 : i = n + 1
+--         grind
+--         grind
+--         rw [Set.mem_setOf] at hB'
+--         have hB' := hB'.right
+--         intro B2 hB2
+--         specialize hB' B2
+--         rw [Set.mem_setOf] at hB2
+--         have: B2 ∈ BB An' (n + 1) := by
+--           rw [Set.mem_setOf]
+--           constructor
+--           grind
+--           grind
+--         specialize hB' this
+--         assumption
+--   -- Need P = ∃ A, ∀ (n : ℕ), ∃ B ∈ BB A n, ∀ B2 ∈ BB A n, (B n).card ≤ (B2 n).card
+--   sorry

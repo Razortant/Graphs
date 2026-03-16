@@ -94,37 +94,35 @@
 
   \(A_0,...,A_n\in[X]^{<\omega}\) is a bad prefix if there exists a bad sequence \(\left(A_i\right)_{i\in\mathbb{N}}\in([X]^{<\omega})^\mathbb{N}\) such that \(T_0,...,T_n\) is a prefix of \(\left(A_i\right)_{i\in\mathbb{N}}\in([X]^{<\omega})^\mathbb{N}\)
 
-  \(A\in[X]^{<\omega}\) is minimal in \(\mathcal{A}\subset[X]^{<\omega}\) if for all \(A'\in\mathcal{A}, |A|\leq |A'|\)
+  \(A\in[X]^{<\omega}\) is minimal in \(\mathcal{A}\subset[X]^{<\omega}\) if for all \(A'\in\mathcal{A}, A'\preceq A \Rightarrow A \preceq A'\)
 
-  We proceed by induction with the following hypothesis. For any given \(n\in\mathbb{N}\), for all bad prefix \(A_0,...,A_{n-1}\in[X]^{<\omega}\), there exists \(A_n\) minimal in \(\{A'/A_0,...,A_{n-1},A_n\text{ is a bad prefix}\}\)
-
-  As \(\leq\) is not a well-quasi-ordering on \([X]^{<\omega}\), there exists \(\left(B_i\right)_{i\in\mathbb{N}}\in([X]^{<\omega})^\mathbb{N}\) a bad sequence.
-
-  Let \(\mathcal{B}=\{B\in[X]^{<\omega}/B\text{ is a bad prefix}\}\) and \(\mathcal{B}_\#=\{n\in\mathbb{N}/\exists B\in\mathcal{B},|B|=n\}\)
-
-  \(B_0\) is a bad prefix so \(\mathcal{B}\) is non-empty so \(\mathcal{B}_\#\) is also non-empty
-
-  \(\mathcal{B}_\#\) is a non-empty subset of \(\mathbb{N}\) so it has a minimum \(m\in\mathbb{N}\)
-
-  There exists \(A_0\in\mathcal{B}\) such that \(|A_0|=m\)
-
-  \(A_0\) is minimal in \(\mathcal{B}\) which proves the base case
+  Let us prove that for any given \(n\in\mathbb{N}\), for all bad prefix \(A_0,...,A_{n-1}\in[X]^{<\omega}\), there exists \(A_n\) minimal in \(\{A'/A_0,...,A_{n-1},A_n\text{ is a bad prefix}\}\)
 
   Let \(n\in\mathbb{N}\), 
 
   Let \(A_0,...,A_{n-1}\in[X]^{<\omega}\) be a bad prefix
 
-  Let \(\mathcal{B}=\{B\in[X]^{<\omega}/A_0,...,A_{n-1},B\text{ is a bad prefix}\}\) and \(\mathcal{B}_\#=\{n\in\mathbb{N}/\exists B\in\mathcal{B},|B|=n\}\)
+  Let \(\mathcal{B}=\{B\in[X]^{<\omega}/A_0,...,A_{n-1},B\text{ is a bad prefix}\}\) 
 
   \(\mathcal{B}\) is non-empty so \(\mathcal{B}_\#\) is too
 
-  \(\mathcal{B}_\#\) is a non-empty subset
-  
-  of \(\mathbb{N}\) so it has a minimum \(m\in\mathbb{N}\)
-
-  There exists \(A_n\in\mathcal{B}\) such that \(|A_n|=m\)
+  Therefore, by Zorn's lemma for preorders, there exists \(A_n\in\mathcal{B}\) minimal
 
   \(A_n\) is minimal in \(\mathcal{B}\)
+
+  We construct a bad sequence by induction.
+
+  As \(\leq\) is not a well-quasi-ordering on \([X]^{<\omega}\), there exists \(\left(B_i\right)_{i\in\mathbb{N}}\in([X]^{<\omega})^\mathbb{N}\) a bad sequence.
+
+  Let \(\mathcal{B}=\{B\in[X]^{<\omega}/B\text{ is a bad prefix}\}\) 
+
+  \(B_0\) is a bad prefix so \(\mathcal{B}\) is non-empty
+
+  Therefore, by Zorn's lemma for preorders, there exists \(A_0\in\mathcal{B}\) such that \(|A_0|=m\)
+
+  \(A_0\) is minimal in \(\mathcal{B}\) which proves the base case
+
+  Using the previous property, we construct inductively the sequence \(\left(A_n\right)_{n\in\mathbb{N}}\) of the minimal elements
 
   The sequence \(\left(A_n\right)_{n\in\mathbb{N}}\) is bad in \([X]^{<\omega}\) by construction
   
@@ -160,7 +158,7 @@
 \section{The graph minor theorem for trees}
 
 \begin{theorem}[Kruskal 1960]
-  \label{theo:Kruskal} \lean{Kruskal} \uses{Highman}
+  \label{theo:Kruskal} \lean{Kruskal} \uses{Higman}
   The finite trees are well-quasi-ordered by the topological minor relation \(\preceq\)
 \end{theorem}
 
