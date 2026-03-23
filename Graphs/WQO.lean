@@ -152,6 +152,8 @@ def FinsetLE (s t : Finset α) : Prop := ∃ f : s ↪ t, ∀ x, x.val ≤ f x
 
 infix:50 " ≼ " => FinsetLE
 
+def FinsetLT (s t : Finset α) : Prop := s ≼ t ∧ ¬ (t ≼ s)
+
 def Bad (B : ℕ → Finset α) : Prop := ∀ i j, i < j → ¬ ((B i) ≼ (B j))
 
 def Prefix {n : ℕ} (A : Fin n → Finset α) (B : ℕ → Finset α) : Prop := ∀ i, A i = B i
@@ -177,8 +179,8 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
     unfold BadPrefix at hBPA'
     obtain ⟨B,⟨hBBad,hA'PrefB⟩⟩ := hBPA'
     let BB := {M' | BadPrefix (Concat A' M')}
-    have NptyBB : Nonempty BB := by
-      rw [Set.nonempty_coe_sort,Set.nonempty_def]
+    have NptyBB : BB.Nonempty := by
+      rw [Set.nonempty_def]
       use B n
       unfold BB
       rw [Set.mem_setOf]
@@ -197,7 +199,33 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
         simp at h
         have h2 : i = n := by grind
         simp [h2]
-    sorry --Find a way to integrate Zorn's Lemma to obtain the M
+    have WFF : WellFounded (FinsetLT (α := α)) := by
+      have h2 : WellFounded (LT.lt (α := α)) := wellFounded_lt
+      rw [wellFounded_iff_isEmpty_descending_chain,isEmpty_iff]
+      intro ⟨f,hf⟩
+      unfold FinsetLT at hf
+      specialize hf n
+      have ⟨hf1,hf2⟩ := hf
+      unfold FinsetLE at hf1
+      obtain ⟨g,hg⟩ := hf1
+      rw [wellFounded_iff_isEmpty_descending_chain,isEmpty_iff] at h2
+      simp at h2
+      sorry
+    rw [WellFounded.wellFounded_iff_has_min] at WFF
+    specialize WFF BB NptyBB
+    obtain ⟨M,⟨hM1,hM2⟩⟩ := WFF
+    unfold FinsetLT at hM2
+    push_neg at hM2
+    use M
+    unfold Minima
+    constructor
+    rw [Set.mem_setOf]
+    unfold BadPrefix
+    use B
+    constructor
+    assumption
+    sorry
+    sorry
   have P0 := P 0
   simp [BadPrefix,Prefix,Concat] at P0
   specialize P0 A
