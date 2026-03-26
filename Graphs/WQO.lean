@@ -168,12 +168,29 @@ def Concat {n : ℕ} (A : Fin n → Finset α) (M : Finset α) : Fin (n + 1) →
   · exact A ⟨i, h⟩
   · exact M
 
+lemma WFF (h : WellQuasiOrderedLE α) : WellFounded (FinsetLT (α := α)) := by
+  have h2 : WellFounded (LT.lt (α := α)) := wellFounded_lt
+  rw [wellFounded_iff_isEmpty_descending_chain,isEmpty_iff]
+  intro ⟨f,hf⟩
+  unfold FinsetLT at hf
+  -- specialize hf n
+  -- have ⟨hf1,hf2⟩ := hf
+  -- unfold FinsetLE at hf1
+  -- obtain ⟨g,hg⟩ := hf1
+  -- rw [wellFounded_iff_isEmpty_descending_chain,isEmpty_iff] at h2
+  -- simp at h2
+  choose hf1 hf2 using hf
+  apply hf2
+  sorry
+  sorry
+
 -- Lemma 12.1.3
 theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := α)) := by
-  by_contra h1
-  unfold WellQuasiOrdered at h1
-  simp at h1
-  obtain ⟨A,hA⟩ := h1
+  have WFF : WellFounded (FinsetLT (α := α)) := WFF h
+  contrapose h
+  simp only [WellQuasiOrdered] at h
+  push_neg at h
+  obtain ⟨A,hA⟩ := h
   have P (n : ℕ) : ∀ A : Fin n → Finset α, BadPrefix A → ∃ M : Finset α, Minima M {M' : Finset α|BadPrefix (Concat A M')} := by
     intro A' hBPA'
     unfold BadPrefix at hBPA'
@@ -198,33 +215,19 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
       · simp [h]
         simp at h
         have h2 : i = n := by grind
-        simp [h2]
-    have WFF : WellFounded (FinsetLT (α := α)) := by
-      have h2 : WellFounded (LT.lt (α := α)) := wellFounded_lt
-      rw [wellFounded_iff_isEmpty_descending_chain,isEmpty_iff]
-      intro ⟨f,hf⟩
-      unfold FinsetLT at hf
-      specialize hf n
-      have ⟨hf1,hf2⟩ := hf
-      unfold FinsetLE at hf1
-      obtain ⟨g,hg⟩ := hf1
-      rw [wellFounded_iff_isEmpty_descending_chain,isEmpty_iff] at h2
-      simp at h2
-      sorry
+        rw [h2]
     rw [WellFounded.wellFounded_iff_has_min] at WFF
     specialize WFF BB NptyBB
     obtain ⟨M,⟨hM1,hM2⟩⟩ := WFF
+    have hM2' := hM2
     unfold FinsetLT at hM2
     push_neg at hM2
     use M
     unfold Minima
     constructor
-    rw [Set.mem_setOf]
-    unfold BadPrefix
-    use B
-    constructor
+    unfold BB at hM1
     assumption
-    sorry
+
     sorry
   have P0 := P 0
   simp [BadPrefix,Prefix,Concat] at P0
