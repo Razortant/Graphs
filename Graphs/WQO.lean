@@ -180,8 +180,9 @@ lemma WFF (h : WellQuasiOrderedLE α) : WellFounded (FinsetLT (α := α)) := by
   -- rw [wellFounded_iff_isEmpty_descending_chain,isEmpty_iff] at h2
   -- simp at h2
   choose hf1 hf2 using hf
-  apply hf2
-  sorry
+  unfold FinsetLE at hf1 hf2
+  push_neg at hf2
+
   sorry
 
 -- Lemma 12.1.3
@@ -227,8 +228,11 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
     constructor
     unfold BB at hM1
     assumption
-
-    sorry
+    intro A2 hA2
+    specialize hM2 A2
+    unfold BB at hM2
+    apply hM2
+    assumption
   have P0 := P 0
   simp [BadPrefix,Prefix,Concat] at P0
   specialize P0 A
