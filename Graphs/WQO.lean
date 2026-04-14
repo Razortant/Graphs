@@ -162,37 +162,43 @@ def BadPrefix {n : ℕ} (A : Fin n → Finset α) : Prop := ∃ B : ℕ → Fins
 
 def Minima (A : Finset α) (AA : Set (Finset α)) : Prop := A ∈ AA ∧ ∀ A2 ∈ AA, A2 ≼ A → A ≼ A2
 
+def MinimaCard (A : Finset α) (AA : Set (Finset α)) : Prop := A ∈ AA ∧ ∀ A2 ∈ AA, A.card ≤ A2.card
+
+def BadMini (A : ℕ → Finset α) (AA : Set (Finset α)) : Prop := Bad A ∧ ∀ n : ℕ, MinimaCard (A n) AA
+
+def toPref (n : ℕ) (A : ℕ → Finset α) : Fin n → Finset α := fun n ↦ A n
+
 def Concat {n : ℕ} (A : Fin n → Finset α) (M : Finset α) : Fin (n + 1) → Finset α := by
   intro i
   by_cases h : i < n
   · exact A ⟨i, h⟩
   · exact M
 
-lemma WFF (h : WellQuasiOrderedLE α) : WellFounded (FinsetLT (α := α)) := by
-  have h2 : WellFounded (LT.lt (α := α)) := wellFounded_lt
-  rw [wellFounded_iff_isEmpty_descending_chain,isEmpty_iff]
-  intro ⟨f,hf⟩
-  unfold FinsetLT at hf
-  -- specialize hf n
-  -- have ⟨hf1,hf2⟩ := hf
-  -- unfold FinsetLE at hf1
-  -- obtain ⟨g,hg⟩ := hf1
-  -- rw [wellFounded_iff_isEmpty_descending_chain,isEmpty_iff] at h2
-  -- simp at h2
-  choose hf1 hf2 using hf
-  unfold FinsetLE at hf1 hf2
-  push_neg at hf2
+-- lemma WFF (h : WellQuasiOrderedLE α) : WellFounded (FinsetLT (α := α)) := by
+--   have h2 : WellFounded (LT.lt (α := α)) := wellFounded_lt
+--   rw [wellFounded_iff_isEmpty_descending_chain,isEmpty_iff]
+--   intro ⟨f,hf⟩
+--   unfold FinsetLT at hf
+--   -- specialize hf n
+--   -- have ⟨hf1,hf2⟩ := hf
+--   -- unfold FinsetLE at hf1
+--   -- obtain ⟨g,hg⟩ := hf1
+--   -- rw [wellFounded_iff_isEmpty_descending_chain,isEmpty_iff] at h2
+--   -- simp at h2
+--   choose hf1 hf2 using hf
+--   unfold FinsetLE at hf1 hf2
+--   push_neg at hf2
 
-  sorry
+--   sorry
 
 -- Lemma 12.1.3
 theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := α)) := by
-  have WFF : WellFounded (FinsetLT (α := α)) := WFF h
+  -- have WFF : WellFounded (FinsetLT (α := α)) := WFF h
   contrapose h
   simp only [WellQuasiOrdered] at h
   push_neg at h
   obtain ⟨A,hA⟩ := h
-  have P (n : ℕ) : ∀ A : Fin n → Finset α, BadPrefix A → ∃ M : Finset α, Minima M {M' : Finset α|BadPrefix (Concat A M')} := by
+  have P (n : ℕ) : ∀ A : Fin n → Finset α, BadPrefix A → ∃ M : Finset α, MinimaCard M {M' : Finset α|BadPrefix (Concat A M')} := by
     intro A' hBPA'
     unfold BadPrefix at hBPA'
     obtain ⟨B,⟨hBBad,hA'PrefB⟩⟩ := hBPA'
@@ -217,22 +223,50 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
         simp at h
         have h2 : i = n := by grind
         rw [h2]
-    rw [WellFounded.wellFounded_iff_has_min] at WFF
-    specialize WFF BB NptyBB
-    obtain ⟨M,⟨hM1,hM2⟩⟩ := WFF
-    have hM2' := hM2
-    unfold FinsetLT at hM2
-    push_neg at hM2
+    let BBcard := {i : ℕ | ∃ B ∈ BB, B.card = i}
+    let BBmin := {B| MinimaCard B BB}
+    have hBBmin : BB.Nonempty → BBmin.Nonempty := by
+      intro hBB
+      obtain ⟨B, hB⟩ := hBB
+      have hcard : B.card ∈ BBcard := by grind only [usr Set.mem_setOf_eq]
+      rw [Set.nonempty_def]
+      have hBBcard : ∃ i, i ∈ BBcard := by use B.card
+      let m := Nat.find hBBcard
+      have hm1 : m ∈ BBcard := Nat.find_spec hBBcard
+      have hm2 : ∀ k, k ∈ BBcard → m ≤ k := by
+        intro k hk
+        exact Nat.find_min' hBBcard hk
+      rw [Set.mem_setOf] at hm1
+      obtain ⟨Bm, ⟨hBm1,hBm2⟩⟩ := hm1
+      use Bm
+      rw [Set.mem_setOf]
+      constructor
+      assumption
+      intro A2 hA2
+      rw [hBm2]
+      apply hm2
+      grind only [usr Set.mem_setOf_eq]
+    specialize hBBmin NptyBB
+    obtain ⟨M,hM⟩ := hBBmin
     use M
-    unfold Minima
-    constructor
-    unfold BB at hM1
     assumption
-    intro A2 hA2
-    specialize hM2 A2
-    unfold BB at hM2
-    apply hM2
-    assumption
+    -- rw [WellFounded.wellFounded_iff_has_min] at WFF
+    -- specialize WFF BB NptyBB
+    -- obtain ⟨M,⟨hM1,hM2⟩⟩ := WFF
+    -- have hM2' := hM2
+    -- unfold FinsetLT at hM2
+    -- push_neg at hM2
+    -- use M
+    -- unfold Minima
+    -- constructor
+    -- unfold BB at hM1
+    -- assumption
+    -- intro A2 hA2
+    -- specialize hM2 A2
+    -- unfold BB at hM2
+    -- apply hM2
+    -- assumption
+
   have P0 := P 0
   simp [BadPrefix,Prefix,Concat] at P0
   specialize P0 A
@@ -241,11 +275,24 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
     assumption
   specialize P0 h3
   obtain ⟨A0,hA0⟩ := P0
-  unfold Minima at hA0
+  unfold MinimaCard at hA0
   have ⟨hA0a,hA0b⟩ := hA0
   rw [Set.mem_setOf] at hA0a
   obtain ⟨B,⟨hBa,hBb⟩⟩ := hA0a
+  let rec Amin (n : ℕ) : {f : Fin (n + 1) → Finset α // BadPrefix f} := by
+    induction n with
+      |zero =>
+        let fA0 := fun (1 : Fin (0 + 1)) ↦ A0
+        have BadfA0 : BadPrefix fA0 := by
+          simp [BadPrefix,Prefix]
+          use B
+        exact ⟨fA0,BadfA0⟩
+      |succ n hn =>
+        obtain ⟨f,hf⟩ := hn
+        have hf' := P (n+1) f hf
+        obtain ⟨M,hM⟩ := hf' --Apparently I have to use Σ instead of ∃.....
   sorry
+
 
 -- theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := α)) := by
 --   by_contra h1
