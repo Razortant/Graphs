@@ -1,6 +1,8 @@
 import Mathlib
 import Graphs.Ramsey
 
+noncomputable section
+
 open Classical
 
 variable {α : Type*} [Preorder α]
@@ -168,11 +170,20 @@ def BadMini (A : ℕ → Finset α) (AA : Set (Finset α)) : Prop := Bad A ∧ �
 
 def toPref (n : ℕ) (A : ℕ → Finset α) : Fin n → Finset α := fun n ↦ A n
 
+def localProp (P : (ℕ → α) → Prop) := ∀ ⦃f⦄, (∀ n, ∃ g, P g ∧ ∀ k < n, g k = f k) → P f
+
+def PrevPrefix {n : ℕ} (A : Fin (n+1) → Finset α) : Fin n → Finset α :=
+  fun i => A ⟨i.val, Nat.lt_trans i.isLt (Nat.lt_succ_self n)⟩
+
 def Concat {n : ℕ} (A : Fin n → Finset α) (M : Finset α) : Fin (n + 1) → Finset α := by
   intro i
   by_cases h : i < n
   · exact A ⟨i, h⟩
   · exact M
+
+lemma PrevConcat {n : ℕ} (A : Fin n → Finset α) (M : Finset α) : PrevPrefix (Concat A M) = A := by
+  unfold PrevPrefix Concat
+  simp only [Fin.is_lt, ↓reduceDIte, Fin.eta]
 
 -- lemma WFF (h : WellQuasiOrderedLE α) : WellFounded (FinsetLT (α := α)) := by
 --   have h2 : WellFounded (LT.lt (α := α)) := wellFounded_lt
@@ -279,18 +290,44 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
   have ⟨hA0a,hA0b⟩ := hA0
   rw [Set.mem_setOf] at hA0a
   obtain ⟨B,⟨hBa,hBb⟩⟩ := hA0a
-  let rec Amin (n : ℕ) : {f : Fin (n + 1) → Finset α // BadPrefix f} := by
+  let Amin (n : ℕ) : {f : Fin (n + 1) → Finset α // BadPrefix f ∧ MinimaCard (f ⟨n, Nat.lt_succ_self n⟩) {M' | BadPrefix (Concat (PrevPrefix f) M')}} := by
     induction n with
       |zero =>
         let fA0 := fun (1 : Fin (0 + 1)) ↦ A0
-        have BadfA0 : BadPrefix fA0 := by
+        have hfA0 : BadPrefix fA0 ∧ MinimaCard (fA0 ⟨0, Nat.lt_succ_self 0⟩) {M' | BadPrefix (Concat (PrevPrefix fA0) M')}:= by
           simp [BadPrefix,Prefix]
+          constructor
           use B
-        exact ⟨fA0,BadfA0⟩
+          unfold MinimaCard
+          constructor
+          grind only
+          grind only
+        exact ⟨fA0,hfA0⟩
       |succ n hn =>
-        obtain ⟨f,hf⟩ := hn
-        have hf' := P (n+1) f hf
-        obtain ⟨M,hM⟩ := hf' --Apparently I have to use Σ instead of ∃.....
+        obtain ⟨f,⟨hf1,hf2⟩⟩ := hn
+        have hf' := P (n+1) f hf1
+        choose M hM using hf'
+        let f2 := Concat f M
+        have res : BadPrefix f2 ∧ MinimaCard (f2 ⟨n + 1, Nat.lt_succ_self (n + 1)⟩) {M' | BadPrefix (Concat (PrevPrefix f2) M')} := by
+          have ⟨hM1,hM2⟩ := hM
+          rw [Set.mem_setOf] at hM1
+          constructor
+          assumption
+          constructor
+          rw [Set.mem_setOf]
+          unfold f2
+          rw [PrevConcat]
+          have this : Concat f M ⟨n + 1, Nat.lt_succ_self (n + 1)⟩ = M := by
+            unfold Concat
+            simp only [lt_self_iff_false, ↓reduceDIte]
+          rw [this]
+          assumption
+          intro A2 hA2
+          sorry
+        exact ⟨f2,res⟩
+  let Amin' (n : ℕ) : Finset α := (Amin n).1 ⟨n, Nat.lt_succ_self n⟩
+  have hBA : Bad Amin' := by
+    sorry
   sorry
 
 
