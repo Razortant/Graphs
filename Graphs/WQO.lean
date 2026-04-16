@@ -323,11 +323,37 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
           rw [this]
           assumption
           intro A2 hA2
-          sorry
+          unfold f2
+          unfold Concat
+          simp only [lt_self_iff_false, ↓reduceDIte]
+          apply hM2
+          unfold f2 at hA2
+          rw [PrevConcat] at hA2
+          assumption
         exact ⟨f2,res⟩
   let Amin' (n : ℕ) : Finset α := (Amin n).1 ⟨n, Nat.lt_succ_self n⟩
   have hBA : Bad Amin' := by
-    sorry
+    unfold Bad
+    by_contra absurd
+    push_neg at absurd
+    obtain ⟨i,temp⟩ := absurd
+    obtain ⟨j,⟨hij1,hij2⟩⟩ := temp
+    unfold Amin' at hij2
+    have hAmin (i : ℕ) := (Amin i).2
+    suffices eq : (Amin i).1 ⟨i, Nat.lt_succ_self i⟩ = (Amin j).1 ⟨i, Nat.lt_trans hij1 (Nat.lt_succ_self j)⟩ by
+      · have ⟨hAminj1,hAminj2⟩ := hAmin j
+        unfold BadPrefix at hAminj1
+        obtain ⟨B2,⟨hB2a,hB2b⟩⟩ := hAminj1
+        unfold Prefix at hB2b
+        unfold Bad at hB2a
+        specialize hB2a i j hij1
+        rw [← hB2b ⟨i, Nat.lt_trans hij1 (Nat.lt_succ_self j)⟩, ← hB2b ⟨j, Nat.lt_succ_self j⟩, ← eq] at hB2a
+        contradiction
+    induction hij1 with --I have no idea if this can work....
+      | refl =>
+        sorry
+      | step hle hhle =>
+        sorry
   sorry
 
 
