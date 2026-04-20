@@ -349,11 +349,22 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
         specialize hB2a i j hij1
         rw [← hB2b ⟨i, Nat.lt_trans hij1 (Nat.lt_succ_self j)⟩, ← hB2b ⟨j, Nat.lt_succ_self j⟩, ← eq] at hB2a
         contradiction
-    induction hij1 with --I have no idea if this can work....
-      | refl =>
-        sorry
-      | step hle hhle =>
-        sorry
+    have eqgen : ∀ i' j' : ℕ, (hi'j' : i' < j') → ∀ l, (hli' : l < i') → (Amin i').1 ⟨l,Nat.lt_trans hli' (Nat.lt_succ_self i')⟩ = (Amin j').1 ⟨l,Nat.lt_trans hli' (Nat.lt_trans hi'j' (Nat.lt_succ_self j'))⟩ := by
+      intro i' j' hi'j' l hli'
+      obtain ⟨k,⟨hk1,hk2⟩⟩ := (lt_iff_exists_add).mp hi'j'
+      induction k with
+        | zero =>
+          unfold Amin
+          grind only
+        | succ k hreck =>
+          by_cases h0 : k > 0
+          · unfold Amin Nat.recAux
+            simp only [Nat.reduceAdd, Fin.zero_eta, Fin.isValue]
+            specialize hreck h0
+
+            sorry
+          · sorry
+    sorry
   sorry
 
 
