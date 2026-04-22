@@ -290,11 +290,11 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
   have ⟨hA0a,hA0b⟩ := hA0
   rw [Set.mem_setOf] at hA0a
   obtain ⟨B,⟨hBa,hBb⟩⟩ := hA0a
-  let Amin (n : ℕ) : {f : Fin (n + 1) → Finset α // BadPrefix f ∧ MinimaCard (f ⟨n, Nat.lt_succ_self n⟩) {M' | BadPrefix (Concat (PrevPrefix f) M')}} := by
+  let Amin (n : ℕ) : {f : Fin (n + 1) → Finset α // BadPrefix f ∧ MinimaCard (f ⟨n, by omega⟩) {M' | BadPrefix (Concat (PrevPrefix f) M')}} := by
     induction n with
       |zero =>
         let fA0 := fun (1 : Fin (0 + 1)) ↦ A0
-        have hfA0 : BadPrefix fA0 ∧ MinimaCard (fA0 ⟨0, Nat.lt_succ_self 0⟩) {M' | BadPrefix (Concat (PrevPrefix fA0) M')}:= by
+        have hfA0 : BadPrefix fA0 ∧ MinimaCard (fA0 ⟨0, by omega⟩) {M' | BadPrefix (Concat (PrevPrefix fA0) M')}:= by
           simp [BadPrefix,Prefix]
           constructor
           use B
@@ -304,11 +304,13 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
           grind only
         exact ⟨fA0,hfA0⟩
       |succ n hn =>
+        refine ⟨Concat hn ((P (n+1) hn.1 hn.2.1).choose), ?_⟩
         obtain ⟨f,⟨hf1,hf2⟩⟩ := hn
         have hf' := P (n+1) f hf1
-        choose M hM using hf'
+        let M := hf'.choose
+        have hM := hf'.choose_spec
         let f2 := Concat f M
-        have res : BadPrefix f2 ∧ MinimaCard (f2 ⟨n + 1, Nat.lt_succ_self (n + 1)⟩) {M' | BadPrefix (Concat (PrevPrefix f2) M')} := by
+        have res : BadPrefix f2 ∧ MinimaCard (f2 ⟨n + 1, by omega⟩) {M' | BadPrefix (Concat (PrevPrefix f2) M')} := by
           have ⟨hM1,hM2⟩ := hM
           rw [Set.mem_setOf] at hM1
           constructor
@@ -317,7 +319,7 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
           rw [Set.mem_setOf]
           unfold f2
           rw [PrevConcat]
-          have this : Concat f M ⟨n + 1, Nat.lt_succ_self (n + 1)⟩ = M := by
+          have this : Concat f M ⟨n + 1, by omega⟩ = M := by
             unfold Concat
             simp only [lt_self_iff_false, ↓reduceDIte]
           rw [this]
@@ -330,8 +332,8 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
           unfold f2 at hA2
           rw [PrevConcat] at hA2
           assumption
-        exact ⟨f2,res⟩
-  let Amin' (n : ℕ) : Finset α := (Amin n).1 ⟨n, Nat.lt_succ_self n⟩
+        exact res
+  let Amin' (n : ℕ) : Finset α := (Amin n).1 ⟨n, by omega⟩
   have hBA : Bad Amin' := by
     unfold Bad
     by_contra absurd
@@ -340,30 +342,35 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
     obtain ⟨j,⟨hij1,hij2⟩⟩ := temp
     unfold Amin' at hij2
     have hAmin (i : ℕ) := (Amin i).2
-    suffices eq : (Amin i).1 ⟨i, Nat.lt_succ_self i⟩ = (Amin j).1 ⟨i, Nat.lt_trans hij1 (Nat.lt_succ_self j)⟩ by
+    suffices eq : (Amin i).1 ⟨i, by omega⟩ = (Amin j).1 ⟨i, by omega⟩ by
       · have ⟨hAminj1,hAminj2⟩ := hAmin j
         unfold BadPrefix at hAminj1
         obtain ⟨B2,⟨hB2a,hB2b⟩⟩ := hAminj1
         unfold Prefix at hB2b
         unfold Bad at hB2a
         specialize hB2a i j hij1
-        rw [← hB2b ⟨i, Nat.lt_trans hij1 (Nat.lt_succ_self j)⟩, ← hB2b ⟨j, Nat.lt_succ_self j⟩, ← eq] at hB2a
+        rw [← hB2b ⟨i, by omega⟩, ← hB2b ⟨j, by omega⟩, ← eq] at hB2a
         contradiction
-    have eqgen : ∀ i' j' : ℕ, (hi'j' : i' < j') → ∀ l, (hli' : l < i') → (Amin i').1 ⟨l,Nat.lt_trans hli' (Nat.lt_succ_self i')⟩ = (Amin j').1 ⟨l,Nat.lt_trans hli' (Nat.lt_trans hi'j' (Nat.lt_succ_self j'))⟩ := by
+    have eqgen : ∀ i' j' : ℕ, (hi'j' : i' ≤ j') → ∀ l, (hli' : l < i') → (Amin i').1 ⟨l,by omega⟩ = (Amin j').1 ⟨l,by omega⟩ := by
       intro i' j' hi'j' l hli'
-      obtain ⟨k,⟨hk1,hk2⟩⟩ := (lt_iff_exists_add).mp hi'j'
+      obtain ⟨k,⟨hk1,hk2⟩⟩ := (le_iff_exists_add).mp hi'j'
       induction k with
         | zero =>
           unfold Amin
           grind only
         | succ k hreck =>
-          by_cases h0 : k > 0
-          · unfold Amin Nat.recAux
-            simp only [Nat.reduceAdd, Fin.zero_eta, Fin.isValue]
-            specialize hreck h0
-
-            sorry
-          · sorry
+          have hi'k : i' ≤ i' + k := by omega
+          specialize hreck hi'k
+          rw [hreck]
+          have hassoc : i' + (k + 1) = (i' + k) + 1 := Nat.add_assoc i' k 1
+          -- subst hassoc
+          unfold Amin
+          rw [hassoc]
+          have : ∀ n, ∃ M, (Amin (n + 1)).1 = Concat (Amin n) M := by grind
+          obtain ⟨M,hM⟩ := this (i' + k)
+          rw [hM]
+          simp [Concat]
+          omega
     sorry
   sorry
 
