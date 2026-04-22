@@ -351,7 +351,7 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
         specialize hB2a i j hij1
         rw [← hB2b ⟨i, by omega⟩, ← hB2b ⟨j, by omega⟩, ← eq] at hB2a
         contradiction
-    have eqgen : ∀ i' j' : ℕ, (hi'j' : i' ≤ j') → ∀ l, (hli' : l < i') → (Amin i').1 ⟨l,by omega⟩ = (Amin j').1 ⟨l,by omega⟩ := by
+    have eqgen : ∀ i' j' : ℕ, (hi'j' : i' ≤ j') → ∀ l, (hli' : l ≤ i') → (Amin i').1 ⟨l,by omega⟩ = (Amin j').1 ⟨l,by omega⟩ := by
       intro i' j' hi'j' l hli'
       obtain ⟨k,⟨hk1,hk2⟩⟩ := (le_iff_exists_add).mp hi'j'
       induction k with
@@ -364,14 +364,14 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
           rw [hreck]
           have hassoc : i' + (k + 1) = (i' + k) + 1 := Nat.add_assoc i' k 1
           -- subst hassoc
-          unfold Amin
-          rw [hassoc]
+          -- unfold Amin
+          change (Amin (i' + k)).1 ⟨l, _⟩ = (Amin (i' + k + 1)).1 ⟨l, _⟩
           have : ∀ n, ∃ M, (Amin (n + 1)).1 = Concat (Amin n) M := by grind
           obtain ⟨M,hM⟩ := this (i' + k)
           rw [hM]
           simp [Concat]
           omega
-    sorry
+    exact eqgen i j (le_of_lt hij1) i (by omega)
   sorry
 
 
