@@ -435,8 +435,73 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
           exact lt_of_le_not_ge h hg3l
       specialize anti anti'
       unfold s at anti
-
-      sorry
+      have := @Finite.exists_infinite_fiber ℕ {x | ∃ n, a (g n) = x} _ (Set.finite_coe_iff.mpr anti)
+        (fun n => ⟨a (g n), by { simp }⟩)
+      obtain ⟨y, hS⟩ := this
+      let S' : Set ℕ := ((fun n ↦ ⟨a (g n), by simp⟩) ⁻¹' {y})
+      have hS' : S'.Infinite := Set.infinite_coe_iff.mp hS
+      let G := @Nat.orderEmbeddingOfSet S' hS _
+      have : ∀ n, a (g (G n)) = y := by
+        intro n
+        have : G n ∈ S' := by simp [G]
+        simp [S'] at this
+        grind
+      refine ⟨G.trans g, ?_⟩
+      intro i j hij
+      simp [this]
+  obtain ⟨n,hn⟩ := hIISS
+  let U (i : ℕ) : Finset α := if i < n 0 then Amin' i else Bmin (n (i - n 0))
+  have hU : ¬ Bad U := by
+    have An := Amin (n 0)
+    let Upref : Fin (n 0 + 1) → Finset α := toPref (n 0 + 1) U
+    suffices hBPU : ¬ BadPrefix Upref
+    · unfold BadPrefix at hBPU
+      push_neg at hBPU
+      intro hBU
+      specialize hBPU U hBU
+      apply hBPU
+      unfold Prefix Upref toPref
+      simp only [implies_true]
+    let f := PrevPrefix Upref
+    intro hBPU
+    have hUnMin : Upref ⟨n 0, by omega⟩ ∈ {M' | BadPrefix (Concat (f) M')} := by
+      rw [Set.mem_setOf]
+      have : ∀ i, Upref i = Concat f (Upref ⟨n 0, by omega⟩) i := by
+        unfold f PrevPrefix Concat
+        intro ⟨i,hi⟩
+        simp only [left_eq_dite_iff, not_lt]
+        intro h
+        replace h : i = n 0 := by omega
+        simp [h]
+      have : Upref = Concat f (Upref ⟨n 0, by omega⟩) := by
+        apply funext
+        intro i
+        exact Finset.val_inj.mp (congrArg Finset.val (this i))
+      exact cast (congrArg BadPrefix this) hBPU
+    let g := toPref (n 0 + 1) Amin'
+    have : BadPrefix g ∧ MinimaCard (g ⟨n 0, by omega⟩) {M' | BadPrefix (Concat (PrevPrefix g) M')} := by
+      constructor
+      · use Amin'
+        constructor
+        assumption
+        unfold g toPref Prefix
+        simp only [implies_true]
+      · constructor
+        rw [Set.mem_setOf]
+        unfold BadPrefix
+        use Amin'
+        constructor
+        · assumption
+        · unfold g PrevPrefix Concat Prefix toPref
+          simp only [dite_eq_ite, ite_eq_left_iff, not_lt]
+          intro ⟨i,hi⟩ h
+          simp only at h
+          replace h : i = n 0 := by omega
+          simp [h]
+        intro A2 hA2
+        --Stuck here
+        sorry
+    sorry
   sorry
 
 
