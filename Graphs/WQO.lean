@@ -7,7 +7,7 @@ open Classical
 
 variable {α : Type*} [Preorder α]
 
-theorem QO_tricolor {X : Type*} [Preorder X] {f : ℕ → X} : ∃ g : ℕ ↪o ℕ, (Monotone (f ∘ g) ∨ StrictAnti (f ∘ g) ∨ (∀ i : ℕ, ∀ j : ℕ, i < j → ¬ ((f (g i) ≤ f (g j)) ∨ (f (g i) > f (g j))))) := by
+theorem QO_tricolor {X : Type*} [Preorder X] (f : ℕ → X) : ∃ g : ℕ ↪o ℕ, (Monotone (f ∘ g) ∨ StrictAnti (f ∘ g) ∨ (∀ i : ℕ, ∀ j : ℕ, i < j → ¬ ((f (g i) ≤ f (g j)) ∨ (f (g i) > f (g j))))) := by
   let K := SimpleGraph.completeGraph ℕ
   let C := Fin 3
   let c : K.EdgeLabeling C := by
@@ -184,6 +184,12 @@ def Concat {n : ℕ} (A : Fin n → Finset α) (M : Finset α) : Fin (n + 1) →
 lemma PrevConcat {n : ℕ} (A : Fin n → Finset α) (M : Finset α) : PrevPrefix (Concat A M) = A := by
   unfold PrevPrefix Concat
   simp only [Fin.is_lt, ↓reduceDIte, Fin.eta]
+
+def ge_of_gt : ∀ a b : α, a > b → a ≥ b := by
+            intro a' b' ha'b'
+            change b' ≤ a'
+            apply le_of_lt
+            assumption
 
 -- lemma WFF (h : WellQuasiOrderedLE α) : WellFounded (FinsetLT (α := α)) := by
 --   have h2 : WellFounded (LT.lt (α := α)) := wellFounded_lt
@@ -372,6 +378,65 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
           simp [Concat]
           omega
     exact eqgen i j (le_of_lt hij1) i (by omega)
+  have noMty : ∀ n : ℕ, (Amin' n).Nonempty := by
+    intro n
+    by_contra Mpty
+    simp only [Finset.not_nonempty_iff_eq_empty] at Mpty
+    unfold Bad at hBA
+    specialize hBA n (n+1) (by omega)
+    rw [Mpty] at hBA
+    unfold FinsetLE at hBA
+    simp at hBA
+  let a (n : ℕ) : α := (noMty n).choose
+  let Bmin (n : ℕ) : Finset α := (Amin' n) \ {a n}
+  by_contra WQOLEα
+  have hIISS : ∃ g : ℕ ↪o ℕ, Monotone (a ∘ g) := by
+    have trico := QO_tricolor a
+    obtain ⟨g,hg⟩ := trico
+    rw [wellQuasiOrderedLE_iff] at WQOLEα
+    have ⟨WF,anti⟩ := WQOLEα
+    cases' hg with hg1 hg2
+    use g
+    cases' hg2 with hg2 hg3
+    · unfold StrictAnti at hg2
+      simp only [Function.comp_apply] at hg2
+      have WF : WellFounded ((· < ·) : α → α → Prop) := WF.wf
+      rw [wellFounded_iff_isEmpty_descending_chain,isEmpty_iff] at WF
+      simp only [Subtype.forall,imp_false, not_forall] at WF
+      specialize WF (a ∘ g)
+      obtain ⟨x,hx⟩ := WF
+      specialize hg2 (Nat.lt_succ_self x)
+      contradiction
+    · let s := {a (g n) | n : ℕ}
+      specialize anti s
+      have anti' : IsAntichain (fun x1 x2 ↦ x1 ≤ x2) s := by
+        change s.Pairwise (fun x1 x2 ↦ x1 ≤ x2)ᶜ
+        change ∀ ⦃x : α⦄, x ∈ s → ∀ ⦃y : α⦄, y ∈ s → x ≠ y → (fun x1 x2 ↦ x1 ≤ x2)ᶜ x y
+        intro x hx y hy hxy
+        simp only [Pi.compl_apply, compl_iff_not]
+        rw [Set.mem_setOf] at hx hy
+        obtain ⟨i, hi⟩ := hx
+        obtain ⟨j, hj⟩ := hy
+        rw [← hi,← hj] at ⊢ hxy
+        by_cases P : i = j
+        rw [P] at hxy
+        contradiction
+        push_neg at P
+        rw [Nat.lt_or_gt] at P
+        cases' P with P1 P2
+        · specialize hg3 i j P1
+          push_neg at hg3
+          exact hg3.left
+        · specialize hg3 j i P2
+          simp only [gt_iff_lt, not_or] at hg3
+          have ⟨hg3l,hg3r⟩ := hg3
+          intro h
+          apply hg3r
+          exact lt_of_le_not_ge h hg3l
+      specialize anti anti'
+      unfold s at anti
+
+      sorry
   sorry
 
 
