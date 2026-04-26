@@ -154,6 +154,9 @@ def FinsetLE (s t : Finset α) : Prop := ∃ f : s ↪ t, ∀ x, x.val ≤ f x
 
 infix:50 " ≼ " => FinsetLE
 
+theorem FinsetLE_trans {s t u : Finset α} : s ≼ t → t ≼ u → s ≼ u := by
+  sorry
+
 def FinsetLT (s t : Finset α) : Prop := s ≼ t ∧ ¬ (t ≼ s)
 
 def Bad (B : ℕ → Finset α) : Prop := ∀ i j, i < j → ¬ ((B i) ≼ (B j))
@@ -501,8 +504,83 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
         intro A2 hA2
         --Stuck here
         sorry
+    have ⟨hBFg,hMCg1,hMCg2⟩ := this
+    have : PrevPrefix g = f := by
+      unfold g f Upref toPref PrevPrefix U
+      simp
+    rw [this] at hMCg1 hMCg2
+    specialize hMCg2 (Upref ⟨n 0,_⟩) hUnMin
+    unfold g Upref toPref U Bmin at hMCg2
+    simp at hMCg2
+    grind
+  unfold Bad at hU
+  push_neg at hU
+  obtain ⟨i,j,hij1,hij2⟩ := hU
+  unfold U at hij2
+  unfold Bad at hBA
+  by_cases Pi : i < n 0
+  by_cases Pj : j < n 0
+  · simp [Pi, Pj] at hij2
+    exact Ne.elim (fun a ↦ hBA i j hij1 hij2) hBb
+  · simp [Pi, Pj] at hij2
+    have : Bmin (n (j - n 0)) ≼ Amin' (n (j - n 0)) := by
+      unfold Bmin FinsetLE
+      let f (x : ↥(Amin' (n (j - n 0)) \ {a (n (j - n 0))})) : ↥(Amin' (n (j - n 0))) := by
+        obtain ⟨x,hx⟩ := x
+        have : x ∈ Amin' (n (j - n 0)) := by grind
+        exact ⟨x,this⟩
+      refine ⟨⟨?_,?_⟩,?_⟩
+      exact f
+      unfold Function.Injective
+      grind
+      intro ⟨x,hx⟩
+      simp only [Function.Embedding.coeFn_mk, ge_iff_le]
+      unfold f
+      simp only [le_refl]
+    have this2 := FinsetLE_trans hij2 this
+    specialize hBA i (n (j - n 0))
+    apply hBA
+    have this3 : n 0 ≤ n (j - n 0) := by
+      rw [OrderEmbedding.le_iff_le]
+      exact Nat.zero_le (j - n 0)
+    apply Nat.lt_of_lt_of_le Pi this3
+    assumption
+  by_cases Pj : j < n 0
+  · grind
+  · simp [Pi, Pj] at hij2
+    obtain ⟨f,hf⟩ := hij2
+    let f2 (x : Amin' (n (i - n 0))) : Amin' (n (j - n 0)) := by
+      obtain ⟨x,hx⟩ := x
+      by_cases Px : x ∈ Bmin (n (i - n 0))
+      · specialize hf ⟨x,Px⟩
+        simp only at hf
+        refine ⟨?_,?_⟩
+        exact ↑(f ⟨x, Px⟩)
+        grind only [usr Subtype.property, = Finset.mem_sdiff]
+      · unfold Bmin at Px
+        have : x = a (n (i - n 0)) := by grind
+        refine ⟨?_,?_⟩
+        exact a (n (j - n 0))
+        grind only [usr Subtype.property, usr Exists.choose_spec]
+    have : Amin' (n (i - n 0)) ≼ Amin' (n (j - n 0)) := by
+      refine ⟨⟨?_,?_⟩,?_⟩
+      exact f2
+      unfold Function.Injective
+      intro a1 a2 ha1a2
+      unfold f2 at ha1a2
+      simp at ha1a2
+      by_cases Pa1 : ↑a1 ∈ Bmin (n (i - n 0))
+      by_cases Pa2 : ↑a2 ∈ Bmin (n (i - n 0))
+      · simp [Pa1,Pa2] at ha1a2
+        assumption
+      · simp [Pa1,Pa2] at ha1a2
+        have : ¬ a (n (j - n 0)) ∈ ↑(Bmin (n (j - n 0))) := by
+          unfold Bmin
+          sorry
+        sorry
+      sorry
+      sorry
     sorry
-  sorry
 
 
 -- theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := α)) := by
