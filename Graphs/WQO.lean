@@ -155,7 +155,16 @@ def FinsetLE (s t : Finset α) : Prop := ∃ f : s ↪ t, ∀ x, x.val ≤ f x
 infix:50 " ≼ " => FinsetLE
 
 theorem FinsetLE_trans {s t u : Finset α} : s ≼ t → t ≼ u → s ≼ u := by
-  sorry
+  unfold FinsetLE
+  intro hst htu
+  obtain ⟨f,hf⟩ := hst
+  obtain ⟨g,hg⟩ := htu
+  use Function.Embedding.trans f g
+  intro x
+  simp only [Function.Embedding.trans_apply]
+  specialize hg (f x)
+  specialize hf x
+  exact LE.le.trans hf hg
 
 def FinsetLT (s t : Finset α) : Prop := s ≼ t ∧ ¬ (t ≼ s)
 
@@ -210,6 +219,8 @@ def ge_of_gt : ∀ a b : α, a > b → a ≥ b := by
 --   push_neg at hf2
 
 --   sorry
+
+set_option maxHeartbeats 400000 in
 
 -- Lemma 12.1.3
 theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := α)) := by
@@ -342,6 +353,26 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
           rw [PrevConcat] at hA2
           assumption
         exact res
+  have eqgen : ∀ i' j' : ℕ, (hi'j' : i' ≤ j') → ∀ l, (hli' : l ≤ i') → (Amin i').1 ⟨l,by omega⟩ = (Amin j').1 ⟨l,by omega⟩ := by
+    intro i' j' hi'j' l hli'
+    obtain ⟨k,⟨hk1,hk2⟩⟩ := (le_iff_exists_add).mp hi'j'
+    induction k with
+      | zero =>
+        unfold Amin
+        grind only
+      | succ k hreck =>
+        have hi'k : i' ≤ i' + k := by omega
+        specialize hreck hi'k
+        rw [hreck]
+        have hassoc : i' + (k + 1) = (i' + k) + 1 := Nat.add_assoc i' k 1
+        -- subst hassoc
+        -- unfold Amin
+        change (Amin (i' + k)).1 ⟨l, _⟩ = (Amin (i' + k + 1)).1 ⟨l, _⟩
+        have : ∀ n, ∃ M, (Amin (n + 1)).1 = Concat (Amin n) M := by grind
+        obtain ⟨M,hM⟩ := this (i' + k)
+        rw [hM]
+        simp [Concat]
+        omega
   let Amin' (n : ℕ) : Finset α := (Amin n).1 ⟨n, by omega⟩
   have hBA : Bad Amin' := by
     unfold Bad
@@ -360,26 +391,6 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
         specialize hB2a i j hij1
         rw [← hB2b ⟨i, by omega⟩, ← hB2b ⟨j, by omega⟩, ← eq] at hB2a
         contradiction
-    have eqgen : ∀ i' j' : ℕ, (hi'j' : i' ≤ j') → ∀ l, (hli' : l ≤ i') → (Amin i').1 ⟨l,by omega⟩ = (Amin j').1 ⟨l,by omega⟩ := by
-      intro i' j' hi'j' l hli'
-      obtain ⟨k,⟨hk1,hk2⟩⟩ := (le_iff_exists_add).mp hi'j'
-      induction k with
-        | zero =>
-          unfold Amin
-          grind only
-        | succ k hreck =>
-          have hi'k : i' ≤ i' + k := by omega
-          specialize hreck hi'k
-          rw [hreck]
-          have hassoc : i' + (k + 1) = (i' + k) + 1 := Nat.add_assoc i' k 1
-          -- subst hassoc
-          -- unfold Amin
-          change (Amin (i' + k)).1 ⟨l, _⟩ = (Amin (i' + k + 1)).1 ⟨l, _⟩
-          have : ∀ n, ∃ M, (Amin (n + 1)).1 = Concat (Amin n) M := by grind
-          obtain ⟨M,hM⟩ := this (i' + k)
-          rw [hM]
-          simp [Concat]
-          omega
     exact eqgen i j (le_of_lt hij1) i (by omega)
   have noMty : ∀ n : ℕ, (Amin' n).Nonempty := by
     intro n
@@ -455,7 +466,10 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
   obtain ⟨n,hn⟩ := hIISS
   let U (i : ℕ) : Finset α := if i < n 0 then Amin' i else Bmin (n (i - n 0))
   have hU : ¬ Bad U := by
-    have An := Amin (n 0)
+    let An := Amin (n 0)
+    have An1 := An.2.1
+    have An2 := An.2.2
+    simp [An] at An1 An2
     let Upref : Fin (n 0 + 1) → Finset α := toPref (n 0 + 1) U
     suffices hBPU : ¬ BadPrefix Upref
     · unfold BadPrefix at hBPU
@@ -501,9 +515,24 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
           simp only at h
           replace h : i = n 0 := by omega
           simp [h]
-        intro A2 hA2
-        --Stuck here
-        sorry
+        exfalso
+        unfold MinimaCard at An2
+        have := An2.2
+        unfold f at hUnMin
+        have toto : PrevPrefix Upref = (PrevPrefix ↑(Amin (n 0))) := by
+          ext1 i
+          simp [Upref, U, toPref, PrevPrefix, Amin']
+          grind
+        rw [toto] at hUnMin
+        specialize this (Upref ⟨n 0, by omega⟩)
+        simp [hUnMin] at this
+        have titi : n 0 - n 0 = 0 := by simp
+        simp [Upref, toPref, U, Bmin, Amin'] at this
+        have this2 : (Amin (n (n 0 - n 0))).1 ⟨n 0, by simp⟩ = ((Amin (n 0)).1 ⟨n 0, by omega⟩) := by grind only
+        rw [this2] at this
+        replace this : (Amin (n 0)).1 ⟨n 0, by omega⟩ ⊂ (Amin (n 0)).1 ⟨n 0, by omega⟩ \ {a (n 0)} := by grind
+        apply Finset.card_lt_card at this
+        grind
     have ⟨hBFg,hMCg1,hMCg2⟩ := this
     have : PrevPrefix g = f := by
       unfold g f Upref toPref PrevPrefix U
@@ -532,7 +561,9 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
       refine ⟨⟨?_,?_⟩,?_⟩
       exact f
       unfold Function.Injective
-      grind
+      intro a1 a2 ha1a2
+      simp [f] at ha1a2
+      exact ha1a2
       intro ⟨x,hx⟩
       simp only [Function.Embedding.coeFn_mk, ge_iff_le]
       unfold f
@@ -546,7 +577,8 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
     apply Nat.lt_of_lt_of_le Pi this3
     assumption
   by_cases Pj : j < n 0
-  · grind
+  · apply Pi
+    omega
   · simp [Pi, Pj] at hij2
     obtain ⟨f,hf⟩ := hij2
     let f2 (x : Amin' (n (i - n 0))) : Amin' (n (j - n 0)) := by
@@ -556,12 +588,18 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
         simp only at hf
         refine ⟨?_,?_⟩
         exact ↑(f ⟨x, Px⟩)
-        grind only [usr Subtype.property, = Finset.mem_sdiff]
+        have hBsbA : Bmin (n (j - n 0)) ⊆ Amin' (n (j - n 0)) := by
+          unfold Bmin
+          exact Finset.sdiff_subset
+        apply hBsbA
+        exact Finset.coe_mem (f ⟨x, Px⟩)
       · unfold Bmin at Px
-        have : x = a (n (i - n 0)) := by grind
+        have : x = a (n (i - n 0)) := by
+          simp only [Finset.mem_sdiff, Finset.mem_singleton, not_and, Decidable.not_not] at Px
+          exact (Px ∘ fun a ↦ hx) α
         refine ⟨?_,?_⟩
         exact a (n (j - n 0))
-        grind only [usr Subtype.property, usr Exists.choose_spec]
+        exact (noMty (n (j - n 0))).choose_spec
     have : Amin' (n (i - n 0)) ≼ Amin' (n (j - n 0)) := by
       refine ⟨⟨?_,?_⟩,?_⟩
       exact f2
@@ -578,11 +616,27 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
           unfold Bmin
           intro h
           simp at h
-        sorry
-      sorry
-      sorry
-    sorry
-
+        grind only
+      by_cases Pa2 : ↑a2 ∈ Bmin (n (i - n 0))
+      · simp [Pa1,Pa2] at ha1a2
+        grind only [= Finset.mem_sdiff, usr Subtype.property, = Finset.mem_singleton]
+      · grind only [= Finset.mem_sdiff, usr Subtype.property, = Finset.mem_singleton]
+      intro ⟨x,hx⟩
+      simp only [Function.Embedding.coeFn_mk, ge_iff_le]
+      unfold f2
+      by_cases Px : x ∈ Bmin (n (i - n 0))
+      · simp [Px]
+        exact le_of_le_of_eq'' (hf ⟨x, of_eq_true (eq_true Px)⟩) rfl
+      · simp [Px]
+        unfold Bmin at Px
+        simp only [Finset.mem_sdiff, Finset.mem_singleton, not_and, Decidable.not_not] at Px
+        apply Px at hx
+        rw [hx]
+        apply hn
+        omega
+    refine hBA _ _ ?_ this
+    refine (OrderEmbedding.lt_iff_lt n).mpr ?_
+    omega
 
 -- theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := α)) := by
 --   by_contra h1
