@@ -576,7 +576,8 @@ theorem Higman (h : WellQuasiOrderedLE α) : WellQuasiOrdered (FinsetLE (α := �
       · simp [Pa1,Pa2] at ha1a2
         have : ¬ a (n (j - n 0)) ∈ ↑(Bmin (n (j - n 0))) := by
           unfold Bmin
-          sorry
+          intro h
+          simp at h
         sorry
       sorry
       sorry
